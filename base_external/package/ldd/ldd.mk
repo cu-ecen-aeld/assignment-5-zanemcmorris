@@ -6,7 +6,7 @@
 ##############################################################
 
 #TODO: Fill up the contents below in order to reference your assignment 3 git contents
-LDD_VERSION = 8c8f1f4762727c1f301f9d334073453f7aaee4e4
+LDD_VERSION = 06c1f24b6901515f417a0c8933701fb9dc4f31a7
 # Note: Be sure to reference the *ssh* repository URL here (not https) to work properly
 # with ssh keys and the automated build/test system.
 # Your site should start with git@github.com:
@@ -15,8 +15,14 @@ LDD_SITE_METHOD = git
 LDD_GIT_SUBMODULES = YES
 
 define LDD_BUILD_CMDS
-	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/misc-modules
-	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/scull
+	# Ensure kernel headers/generated asm includes exist for external modules
+	$(MAKE) -C $(LINUX_DIR) ARCH=$(KERNEL_ARCH) CROSS_COMPILE="$(TARGET_CROSS)" modules_prepare
+
+	# Build external modules using the kernel build system
+	$(MAKE) -C $(LINUX_DIR) ARCH=$(KERNEL_ARCH) CROSS_COMPILE="$(TARGET_CROSS)" \
+		M=$(@D)/misc-modules modules
+	$(MAKE) -C $(LINUX_DIR) ARCH=$(KERNEL_ARCH) CROSS_COMPILE="$(TARGET_CROSS)" \
+		M=$(@D)/scull modules
 endef
 
 # TODO add your writer, finder and finder-test utilities/scripts to the installation steps below
@@ -31,13 +37,6 @@ define LDD_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 $(@D)/scull/scull_load $(TARGET_DIR)/usr/bin
 	$(INSTALL) -m 0755 $(@D)/scull/scull_unload $(TARGET_DIR)/usr/bin
 	$(INSTALL) -m 0755 $(@D)/scull/scull.init $(TARGET_DIR)/usr/bin
-	
-	
-
-	
-
-
-
 
 endef
 
